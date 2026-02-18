@@ -1,0 +1,10 @@
+flask>=3.0.0
+python-dotenv>=1.0.0
+werkzeug>=3.0.0
+
+# Optional but recommended — needed for .htpasswd auth
+passlib>=1.7.4
+bcrypt>=4.0.0
+
+# Optional — production WSGI server
+# gunicorn>=21.0.0

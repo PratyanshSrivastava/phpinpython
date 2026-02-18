@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>File Upload Demo – PHPyServer</title>
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    #drop { border: 3px dashed #c7d2fe; border-radius: 12px; padding: 3rem;
+      text-align: center; cursor: pointer; transition: background .2s; margin-bottom: 1rem; }
+    #drop.over { background: #eef2ff; }
+    #results { margin-top: 1rem; }
+    .file-result { padding: .5rem; border-radius: 4px; margin-bottom: .4rem;
+      background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .file-error  { background: #fef2f2; border-color: #fecaca; }
+  </style>
+</head>
+<body>
+  <header><h1>📁 File Upload</h1><p>POST /upload – multipart</p></header>
+  <nav><a href="/">Home</a></nav>
+  <main>
+    <h2>Upload Files</h2>
+    <div id="drop">
+      <p>Drag &amp; drop files here, or click to browse</p>
+      <input type="file" id="file-input" multiple style="display:none">
+      <button onclick="document.getElementById('file-input').click()">Choose Files</button>
+    </div>
+
+    <div id="results"></div>
+
+    <h2>Direct Form Upload</h2>
+    <form action="/upload" method="POST" enctype="multipart/form-data">
+      <label>Select file(s): <input type="file" name="file" multiple></label>
+      <button type="submit">Upload via Form</button>
+    </form>
+  </main>
+
+  <script>
+    const drop    = document.getElementById('drop');
+    const input   = document.getElementById('file-input');
+    const results = document.getElementById('results');
+
+    drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('over'); });
+    drop.addEventListener('dragleave', () => drop.classList.remove('over'));
+    drop.addEventListener('drop', e => {
+      e.preventDefault(); drop.classList.remove('over');
+      uploadFiles(e.dataTransfer.files);
+    });
+    input.addEventListener('change', () => uploadFiles(input.files));
+
+    async function uploadFiles(files) {
+      const fd = new FormData();
+      for (const f of files) fd.append('file', f);
+
+      results.innerHTML = '<p>Uploading…</p>';
+      try {
+        const res  = await fetch('/upload', { method: 'POST', body: fd });
+        const json = await res.json();
+
+        results.innerHTML = '';
+        (json.saved || []).forEach(f => {
+          const d = document.createElement('div');
+          d.className = 'file-result';
+          d.textContent = `✅ ${f.filename} (${(f.size/1024).toFixed(1)} KB)`;
+          results.appendChild(d);
+        });
+        (json.errors || []).forEach(f => {
+          const d = document.createElement('div');
+          d.className = 'file-result file-error';
+          d.textContent = `❌ ${f.filename}: ${f.error}`;
+          results.appendChild(d);
+        });
+      } catch (err) {
+        results.innerHTML = `<p style="color:red">Error: ${err.message}</p>`;
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,57 +1,28 @@
 # 🐘 PHPyServer
 
-> High-performance PHP/Flask hybrid web server — run PHP scripts on-demand with full `.htaccess` emulation, in-memory caching, and zero Apache dependency.
+> Run PHP files through Python Flask — with a full admin panel, .htaccess support, and zero Apache needed.
 
 ---
 
-## Features
-
-| Feature | Detail |
-|---|---|
-| **PHP Execution** | Subprocess CLI, stdin piping, full `$_GET`/`$_POST`/`$_SERVER`/`$_COOKIE` |
-| **.htaccess Parser** | `RewriteRule`, `Redirect`, `AuthType Basic`, `Deny`, `Options Indexes` |
-| **Pretty URLs** | `/blog` → `blog.php` automatically |
-| **Basic Auth** | APR1-MD5, SHA1, bcrypt `.htpasswd` formats |
-| **Static Serving** | MIME types, TTL in-memory cache, directory auto-index |
-| **File Upload** | `POST /upload` multipart, configurable size limit |
-| **REST API** | `/health`, `/api/*`, `/api/cache` (DELETE) |
-| **Custom 404** | Drop `404.php` or `404.html` in `code/` |
-| **Production** | Gunicorn config included, Docker + Compose ready |
-
----
-
-## Quick Start
+## Quick Start (3 steps)
 
 ```bash
-# 1. Clone / download
-git clone https://github.com/you/phpyserver && cd phpyserver
-
-# 2. Install dependencies
+# 1. Install Python dependencies
 pip install -r requirements.txt
 
-# 3. Copy env config
+# 2. Copy the example config (optional — defaults work out of the box)
 cp .env.example .env
 
-# 4. Drop your PHP/HTML files in code/
-#    (sample files are already there)
-
-# 5. Start the server
-python app.py
-# → http://127.0.0.1:5000
+# 3. Start both servers
+python run.py
 ```
 
-### Docker
+That's it! Open your browser:
 
-```bash
-docker-compose up --build
-```
-
-### Production (Gunicorn)
-
-```bash
-pip install gunicorn
-gunicorn -c gunicorn_config.py app:app
-```
+| What | URL |
+|---|---|
+| 🌐 Your PHP site | http://localhost:5000 |
+| ⚙️ Admin panel | http://localhost:8080 |
 
 ---
 
@@ -59,109 +30,102 @@ gunicorn -c gunicorn_config.py app:app
 
 ```
 phpyserver/
-├── app.py                  ← Main server (Flask + all logic)
-├── gunicorn_config.py      ← Production WSGI config
-├── benchmark.py            ← Smoke test & benchmark tool
+├── run.py          ← START HERE — launches both servers
+├── server.py       ← PHP server (port 5000)
+├── admin.py        ← Admin panel (port 8080)
+├── core.py         ← Shared utilities (cache, htaccess, php executor)
 ├── requirements.txt
-├── Makefile                ← make dev / test / bench / docker
-├── Dockerfile
-├── docker-compose.yml
-├── .env.example
-├── tests/
-│   └── test_server.py      ← Unit & integration tests (pytest)
-└── code/                   ← Your DocumentRoot (edit freely)
-    ├── .htaccess            ← Apache-style rewrite rules
-    ├── index.php            ← Demo home page
-    ├── blog.php             ← Accessible as /blog (pretty URL)
-    ├── api.php              ← JSON REST API routed from /api/*
-    ├── 404.php              ← Custom 404 handler
-    ├── style.css            ← Shared stylesheet
-    ├── upload.html          ← Drag-and-drop upload demo
-    └── uploads/             ← Upload destination
+├── .env.example    ← Copy to .env to configure
+│
+├── code/           ← YOUR FILES GO HERE (like Apache's DocumentRoot)
+│   ├── .htaccess   ← URL rewrites, auth, options
+│   ├── index.php   ← Homepage
+│   ├── blog.php    ← Accessible as /blog (pretty URL)
+│   ├── gallery.php ← Accessible as /gallery
+│   ├── api.php     ← REST API at /api/*
+│   ├── 404.php     ← Custom 404 page
+│   ├── style.css   ← Shared stylesheet
+│   ├── partials/   ← Reusable PHP includes
+│   └── uploads/    ← File upload destination
+│
+├── logs/           ← Access logs
+└── tests/          ← pytest tests
+    └── test_core.py
 ```
 
 ---
 
-## Configuration (`.env`)
+## The Admin Panel (localhost:8080)
 
-| Variable | Default | Description |
-|---|---|---|
-| `HOST` | `127.0.0.1` | Bind address (`0.0.0.0` for Docker) |
-| `PORT` | `5000` | Listen port |
-| `DEBUG` | `false` | Verbose logs + auto-reloader |
-| `CODE_DIR` | `code` | DocumentRoot path |
-| `PHP_BINARY` | `php` | PHP CLI binary name or full path |
-| `PHP_TIMEOUT` | `30` | Max seconds per PHP execution |
-| `MAX_UPLOAD_MB` | `10` | Upload size cap |
-| `CACHE_TTL` | `60` | Static file cache TTL (seconds) |
-| `LOG_FILE` | `logs/access.log` | Access log path |
-| `SECRET_KEY` | *(change me)* | Flask session secret |
+The admin panel is a full web UI for managing your server without touching the command line.
+
+| Page | What you can do |
+|---|---|
+| 🏠 Dashboard | Live request stats, server status, quick actions |
+| ⚙️ Settings | Edit all server config (PHP binary, ports, cache TTL, etc.) |
+| 📁 File Manager | Browse, create, edit, upload, and delete files in `code/` |
+| 🔀 Rewrite Rules | Edit `.htaccess` with syntax highlighting, see parsed rules |
+| 👥 Users & Auth | Add/remove `.htpasswd` users, enable basic auth |
+| 📋 Logs | View and filter access logs in real-time |
+| 🐘 PHP Info | Check PHP version, extensions, and INI settings |
 
 ---
 
-## `.htaccess` Support
+## Adding Your Own PHP Files
 
-Place a `.htaccess` in `code/`. It's parsed at startup and hot-reloaded on change.
+1. Drop `.php` files into the `code/` folder
+2. Visit `http://localhost:5000/your-file` — the `.php` extension is optional
+3. Use the File Manager in the admin panel to edit files directly in the browser
+
+**Pretty URLs** — PHPyServer automatically maps `/about` → `about.php`. You can also add explicit rules in `code/.htaccess`.
+
+---
+
+## .htaccess Support
+
+Edit `code/.htaccess` to configure routing. The admin panel has a visual editor.
 
 ```apache
 RewriteEngine On
 
-# Pretty URL
-RewriteRule ^blog$         blog.php      [L]
+# Pretty URL: /blog → blog.php
+RewriteRule ^blog$  blog.php  [L]
 
-# Capture group  →  back-reference
-RewriteRule ^post/([0-9]+)$ post.php?id=$1 [L]
+# Capture group: /post/42 → post.php?id=42
+RewriteRule ^post/([0-9]+)$  post.php?id=$1  [L]
 
-# API passthrough
-RewriteRule ^api/(.+)$    api.php        [L]
+# API route: /api/* → api.php
+RewriteRule ^api/(.+)$  api.php  [L]
 
 # 301 redirect
 Redirect 301 /old /new
 
-# Basic auth
-AuthType Basic
-AuthName "Members Only"
-AuthUserFile .htpasswd
-Require valid-user
-
-# Directory listing on/off
+# Directory listing (remove + to disable)
 Options +Indexes
-```
 
-### Generating `.htpasswd` entries
-
-```bash
-make htpasswd          # interactive prompt, appends to code/.htpasswd
-# or manually:
-htpasswd -BC 10 code/.htpasswd username
+# Basic auth (add users via Admin → Users)
+# AuthType Basic
+# AuthName "Members Only"
+# AuthUserFile .htpasswd
+# Require valid-user
 ```
 
 ---
 
-## API Endpoints
+## Configuration
 
-| Method | Path | Description |
+Edit `.env` (or use the Admin → Settings page):
+
+| Variable | Default | Description |
 |---|---|---|
-| `GET` | `/health` | Server health + PHP availability |
-| `GET` | `/api/info` | Server configuration |
-| `DELETE` | `/api/cache` | Clear in-memory static cache |
-| `POST` | `/upload` | Upload files (`multipart/form-data`, field: `file`) |
-| `GET` | `/api/ping` | PHP-side JSON ping |
-| `GET` | `/api/users` | Sample user list |
-| `POST` | `/api/echo` | Echo request back as JSON |
-
----
-
-## PHP Environment Variables
-
-Every PHP script receives a full CGI environment:
-
-```
-DOCUMENT_ROOT, SCRIPT_FILENAME, SCRIPT_NAME, REQUEST_URI,
-REQUEST_METHOD, QUERY_STRING, CONTENT_TYPE, CONTENT_LENGTH,
-SERVER_NAME, SERVER_PORT, REMOTE_ADDR, HTTP_HOST,
-HTTP_USER_AGENT, HTTP_COOKIE, HTTP_ACCEPT, … all HTTP_* headers
-```
+| `PORT` | `5000` | PHP server port |
+| `ADMIN_PORT` | `8080` | Admin panel port |
+| `PHP_BINARY` | `php` | Path to PHP CLI (`php`, `php8.2`, `/usr/bin/php`) |
+| `PHP_TIMEOUT` | `30` | Max seconds per PHP script |
+| `CODE_DIR` | `code` | Your DocumentRoot folder |
+| `CACHE_TTL` | `60` | Static file cache in seconds (0 = off) |
+| `MAX_UPLOAD_MB` | `10` | Upload size limit |
+| `DEBUG` | `false` | Show PHP errors and verbose logs |
 
 ---
 
@@ -174,27 +138,18 @@ pytest tests/ -v
 
 ---
 
-## Benchmarking
+## Tips for Beginners
 
-```bash
-# With server running in another terminal:
-python benchmark.py
-
-# Against a different host/port:
-python benchmark.py http://0.0.0.0:5000 100
-```
+- **PHP not found?** Run `php -v` in terminal. If it's not installed, download PHP from https://www.php.net/downloads and make sure it's in your PATH.
+- **Port already in use?** Change `PORT` or `ADMIN_PORT` in `.env` (or via the Settings page).
+- **Edit files live** — use the Admin → File Manager. Changes to `.php` files are instant (no server restart needed).
+- **Changes to `.env`** take effect on the next server start for port/host settings, but immediately for most others.
+- **Uploads** — files uploaded via `POST /__upload` are saved to `code/uploads/`.
 
 ---
 
-## Known Limitations
+## Requirements
 
-- `RewriteCond` is parsed but not enforced (complex condition logic not emulated).
-- No `.htaccess` in subdirectories — only `code/.htaccess` is read.
-- PHP sessions use the server's default `session.save_path`; in Docker you may want to mount `/tmp`.
-- `MD5`/`APR1` `.htpasswd` requires `passlib`; bcrypt requires `bcrypt` (both in `requirements.txt`).
-
----
-
-## License
-
-MIT — use freely, contribute back if you improve it.
+- Python 3.10+
+- PHP CLI (any version — check with `php -v`)
+- pip packages: flask, python-dotenv, werkzeug

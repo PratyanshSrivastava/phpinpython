@@ -1,0 +1,20 @@
+2026-02-18 17:04:49,070 - INFO - .htaccess loaded: 6 rules, auth=no, deny_patterns=[]
+2026-02-18 17:04:49,086 - INFO - PHPyServer starting on http://127.0.0.1:5000
+2026-02-18 17:04:49,086 - INFO - Code directory: D:\Programming\Python Projects\phpinpython\code
+2026-02-18 17:04:49,086 - INFO - PHP binary:     php
+2026-02-18 17:04:49,086 - INFO - Debug mode:     False
+2026-02-18 17:04:55,233 - ERROR - PHP binary not found: php
+2026-02-18 17:04:55,233 - INFO - 127.0.0.1 "GET /" 503 7.6ms
+2026-02-18 17:11:54,229 - INFO - .htaccess loaded: 6 rules, auth=no, deny_patterns=[]
+2026-02-18 17:11:54,229 - INFO - PHPyServer starting on http://127.0.0.1:5000
+2026-02-18 17:11:54,229 - INFO - Code directory: D:\Programming\Python Projects\phpinpython\code
+2026-02-18 17:11:54,554 - INFO - PHP binary:     php
+2026-02-18 17:11:54,597 - INFO - Debug mode:     False
+2026-02-18 17:12:11,507 - INFO - 127.0.0.1 "GET /" 200 3506.5ms
+2026-02-18 17:12:12,172 - INFO - 127.0.0.1 "GET /favicon.ico" 404 2.4ms
+2026-02-18 17:12:55,046 - INFO - .htaccess loaded — 6 rules, auth=no
+2026-02-18 17:12:59,821 - INFO - 127.0.0.1 "GET /" 200 92.9ms [php]
+2026-02-18 17:14:01,771 - INFO - 127.0.0.1 "GET /blog.pgp" 200 88.6ms [php]
+2026-02-18 17:14:04,567 - INFO - 127.0.0.1 "GET /blog.php" 200 84.3ms [php]
+2026-02-18 17:14:12,309 - INFO - 127.0.0.1 "GET /blog" 200 87.4ms [php]
+2026-02-18 17:14:21,256 - INFO - 127.0.0.1 "GET /gallery.php" 200 135.7ms [php]
